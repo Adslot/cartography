@@ -1,29 +1,38 @@
 Cartography
 ===========
 
+[![Build Status](https://secure.travis-ci.org/Adslot/cartography.png?branch=master)](http://travis-ci.org/Adslot/cartography)
+
 Javascript Object to Object mapper
 
 Cartography takes an input Object and translates it into a new Object with a
 different structure according to a schema.
+It can also be used for validating input structures.
+
+```coffeescript
+{same, from, map, filters, CartographyError} = require 'cartography'
+{required, isInteger, isOneOf} = filter
+
+isPositive = (v) -> if v > 0 then v else throw new CartographyError 'must be positive'
+
+cartographyUserSchema =
+  id: same isInteger
+  username: from 'email', required, (s) -> s.toLowerCase()
+  password: same required, isString
+  provider: -> 'Adslot'
+  maxShare: from 'sales.salePercentage', parseInt, isInteger, isPositive
+  address:
+    streetName: from 'addressStreet', required, isString
+    streetNumber: from 'addressNumber', required, isString
+    state: from 'addressState', isOneOf ['QLD', 'SA', 'ACT', 'NSW', 'VIC']
+
+userInDBFormat = map userInTransferFormat, cartographyUserSchema
+```
+(All examples are in CoffeeScript, but Cartography is pure JavaScript.)
 
 The schema's structure resembles that of the output Object: it has the
 same attribute names and the same nested structure (if any), but each
 attribute value describes how obtain the final output value.
-
-All examples are in CoffeeScript, but the Cartography is pure JavaScript.
-
-```coffeescript
-cartographyUserSchema =
-  id: same required, integer
-  username: from 'email', required, ((s) -> s.toLowerCase()), email
-  password: same required, string
-  provider: -> 'Adslot'
-  maxShare: from 'sales.salePercentage', required, parseInt, isInteger, isGreater(0)
-  address:
-    streetName: from 'addressStreet', string, required
-    streetNumber: from 'addressNumber', string, required
-    state: from 'addressState', isOneOf ['QLD', 'SA', 'ACT', 'NSW', 'VIC']
-```
 
 Each attribute value can be one of three things: a list of filters, another
 schema object or a custom function.
@@ -108,4 +117,3 @@ The `asyncArray` filter should also be used in place of `array`.
 TODO
 ----
 Improve this README
-Add packages.json
