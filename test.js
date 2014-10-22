@@ -5,7 +5,7 @@
 
   assert = require('assert');
 
-  cartography = require('./cartography');
+  cartography = require('./index');
 
   from = cartography.from, same = cartography.same, filters = cartography.filters, async = cartography.async, isCartographyError = cartography.isCartographyError, CartographyError = cartography.CartographyError;
 
