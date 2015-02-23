@@ -354,7 +354,7 @@
             return done();
           });
         });
-        return it('should recognize a missing object with nested attributes', function(done) {
+        it('should recognize a missing object with nested attributes', function(done) {
           var model;
           model = {
             siteId: 3,
@@ -375,12 +375,54 @@
             return done();
           });
         });
+
+        it('should add proper separators in path in error messages', function() {
+          assert.throws((function() {
+            data = cartography.map(
+              {list: [{foo: 'bar'}]},
+              {list: same(filters.array(function(item) {
+                return cartography.map(item, {
+                  one: same(filters.required)
+                })
+              }))}
+            )
+          }), /list\[0\].one: is required/);
+
+          assert.throws((function() {
+            cartography.map(
+              {list: [{foo: 'bar'}]},
+              {list: same(filters.array(function(item) {
+                return cartography.map(item, {
+                  two: same(function(two) {
+                    return cartography.map(two, {
+                      three: same(filters.isNumber)
+                    })
+                  }),
+                })
+              }))}
+            )
+          }), /list\[0\].two.three: must be a number/);
+
+          assert.throws((function() {
+            cartography.map(
+              {list: [{foo: 'bar'}]},
+              {list: same(filters.array(function(item) {
+                return cartography.map(item, {
+                  four: from('a.b.c', filters.required)
+                })
+              }))}
+            )
+          }), /list\[0\].a.b.c: is required/);
+
+        });
       });
     };
+
     for (version in versions) {
       _ref = versions[version], patient = _ref.patient, patientHelper = _ref.patientHelper;
       _fn(patient, patientHelper);
     }
+
     describe('isCartographyError()', function() {
       return it('should work at least', function() {
         assert(isCartographyError(new CartographyError));

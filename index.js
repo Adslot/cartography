@@ -78,7 +78,7 @@ var cartography = (function(){
       var filters = Array.prototype.slice.call(args, 1);
 
       var value = sourceAttribute.split('.').reduce((function(o, step) {return (o || {})[step];}), source);
-      asyncRunFiltersOn(value, filters, (function(message) {return sourceAttribute + message;}), cb);
+      asyncRunFiltersOn(value, filters, (function(message) {return addSeparator(sourceAttribute, message);}), cb);
     };
 
     // Build destination attribute via a custom function
@@ -122,7 +122,7 @@ var cartography = (function(){
   };
 
 
-  function map(source, schema, cb) {
+  function map(source, schema) {
 
     // Build destination attribute via a filters chain
     function runFilters(args, destinationAttribute) {
@@ -130,7 +130,7 @@ var cartography = (function(){
       var filters = Array.prototype.slice.call(args, 1);
 
       var value = sourceAttribute.split('.').reduce((function(o, step) {return (o || {})[step];}), source);
-      return runFiltersOn(value, filters, function(message) {return sourceAttribute + message;});
+      return runFiltersOn(value, filters, function(message) {return addSeparator(sourceAttribute, message);});
     };
 
     // Build destination attribute via a custom function
@@ -159,6 +159,13 @@ var cartography = (function(){
 
     if (length) return destination;
     return undefined;
+  };
+
+
+  function addSeparator(sourceAttribute, message) {
+    // check that message is like "foo: bar" and neither ": bar" nor "[0]: bar"
+    var sep = /^[^[:].*:/.test(message) ? '.' : '';
+    return sourceAttribute + sep + message;
   };
 
 
@@ -192,7 +199,7 @@ var cartography = (function(){
         if (!Array.isArray(a)) return cb(new CartographyError('must be an Array'));
 
         _async.timesSeries(a.length, function(index, cb) {
-          asyncRunFiltersOn(a[index], filters, (function(message) {return '[' +index+ ']' + message;}), cb);
+          asyncRunFiltersOn(a[index], filters, (function(message) {return addSeparator('['+index+']', message);}), cb);
         }, cb);
       });
     },
@@ -203,7 +210,7 @@ var cartography = (function(){
         if (!Array.isArray(a)) throw new CartographyError('must be an Array');
 
         return a.map(function(element, index) {
-          return runFiltersOn(element, filters, function(message) {return '[' +index+ ']' + message;});
+          return runFiltersOn(element, filters, function(message) {return addSeparator('['+index+']', message);});
         });
       };
     },
