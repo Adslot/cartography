@@ -1,9 +1,6 @@
 assert = require 'assert'
 cartography = require '../index'
 
-# TODO: use testSchema examples in readme
-# TODO: cleanup package.json
-
 
 describe 'cartography', ->
 

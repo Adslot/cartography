@@ -1,32 +1,48 @@
 Cartography
 ===========
 
+
 [![Build Status](https://secure.travis-ci.org/Adslot/cartography.png?branch=master)](http://travis-ci.org/Adslot/cartography)
 
 Javascript Object to Object mapper
 
 Cartography takes an input Object and translates it into a new Object with a
-different structure according to a schema.
+different structure as specified by a schema.
 It can also be used for validating input structures.
 
+
 ```coffeescript
-{same, from, map, filters, CartographyError} = require 'cartography'
-{required, isInteger, isOneOf} = filter
 
-isPositive = (v) -> if v > 0 then v else throw new CartographyError 'must be positive'
+  theInput =
+    id: 123
+    userName: 'HappyLand'
+    color:
+      definition: '#7ff'
+    day: 'Mon'
+    month: 'Aug'
 
-cartographyUserSchema =
-  id: same isInteger
-  username: from 'email', required, (s) -> s.toLowerCase()
-  password: same required, isString
-  provider: -> 'Adslot'
-  maxShare: from 'sales.salePercentage', parseInt, isInteger, isPositive
-  address:
-    streetName: from 'addressStreet', required, isString
-    streetNumber: from 'addressNumber', required, isString
-    state: from 'addressState', isOneOf ['QLD', 'SA', 'ACT', 'NSW', 'VIC']
+  theDesiredOutput =
+    id: 123
+    name: 'HappyLand'
+    base:
+      color: '#7FF'
+      type: 'default'
+      time: 'Mon - Aug'
 
-userInDBFormat = map userInTransferFormat, cartographyUserSchema
+
+  # enters Cartography
+  {same, from, map, filters} = require 'cartography'
+  {required, optional, isString} = filters
+
+  theSchemaToTranslateOneIntoTheOther =
+    id: same required
+    name: from 'userName', isString
+    base:
+      color: from 'color.definition', isString, (v) -> v.toUpperCase()
+      type: same optional
+      time: (inputObject) -> "#{inputObject.day} - #{inputObject.month}"
+
+  assert.deepEqual map(theInput, theSchemaToTranslateOneIntoTheOther), theDesiredOutput
 ```
 (All examples are in CoffeeScript, but Cartography is pure JavaScript.)
 
@@ -58,8 +74,6 @@ otherwise.
 `CartographyError`s are collected by the `map` method and decorated with the
 full path of the input value that caused the error.
 
-Some filters are provided in the `filters` Object.
-
 
 **Custom functions** are passed the input Object as argument and their output
 is used as final value for the output attribute.
@@ -70,50 +84,66 @@ cartographyCarSchema =
 ```
 
 
-Example usage
--------------
+Built-in filters
+----------------
+* `optional`
+* `required`
+* `parseJSON`
+* `isString`
+* `isNumber`
+* `isInteger`
+
+
+Built-in filter factories
+-------------------------
+* `filters.array`
+```coffeescript
+input =
+  aListOfStuff: [1, 4, 5]
+
+schema =
+  list: from 'aListOfStuff', filters.array filters.isInteger, (n) -> "#{n}.0"
+
+assert.deepEqual map(input, schema),
+  list: ['1.0', '4.0', '5.0']
 ```
-inputUser =
-  id: 3
-  email: 'joe.lizard@reptiles.com'
-  password: '12345'
-  sales:
-    saleCount: 56
-    salePercentage: 23
-  addressStreet: 'rock st'
-  addressNumber: '21/a'
-  addressState: 'VIC'
+`filters.array` ensures that the value is an Array and applies the subsequent filters to each element of the value.
 
-outputUser = map cartographyUserSchema, inputUser
 
- * outputUser will yield:
-  id: 3
-  username: 'joe.lizard@reptiles.com'
-  password: '12345'
-  provider: 'Adslot'
-  maxShare: 23
-  address:
-    streetName: 'rock st'
-    streetNumber: '21/a'
-    state: 'VIC'
+* `filters.object`
+```coffeescript
+input =
+  someHash:
+    a: 1
+    b: 'hello!'
+    c: ['blue', 'black']
+
+schema =
+  keys: from 'someHash', filters.object
+    a: same, filters.isNumber
+    b: same, filters.isString, (s) -> "**#{s}**"
+    c: same, filters.array filters.isString
+
+assert.deepEqual map(input, schema),
+  keys:
+    a: 1
+    b: '**hello!**'
+    a: ['blue', 'black']
 ```
-
-If `inputUser` contained no `sales` attribute or no `salePercentage` within
-`sales`, `map()` would throw a `CartographyError` with a
-"sales.salePercentage: is required" `message`.
+`filters.object` creates a filter that passes the value through `cartography.map` with the given nested schema.
 
 
-Asynchronous version
---------------------
-`asyncMap` is a fully asynchronous version of `map`, which will return
-`CartographyError`s to the provided callback instead of throwing them.
-In addition to the usual synchronous filters and custom functions, `asyncMap`
-can use asynchronous filters and asynchronous custom functions provided they
-are wrapped by the `async` function decorator.
-The `asyncArray` filter should also be used in place of `array`.
+* `filters.assert`
+```
+isEven = filters.assert ((n) -> n % 2 is 0), 'must be even'
+```
+`filters.assert` returns a filter that asserts for the given condition, producing a CartographyError with the provided
+message if the condition is not met.
 
 
+* `filters.isOneOf`
+```
+isPrimaryColor = filters.isOneOf ['red', 'green', 'blue']
+```
+`filters.isOneOf` creates a filter that checks whether the value belongs to the given list.
 
-TODO
-----
-Improve this README
