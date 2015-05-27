@@ -1,7 +1,7 @@
 Cartography
 ===========
 
-
+[![NPM version][npm-image]][npm-url] [![Dependency Status][daviddm-url]][daviddm-image]
 [![Build Status](https://secure.travis-ci.org/Adslot/cartography.png?branch=master)](http://travis-ci.org/Adslot/cartography)
 
 Javascript Object to Object mapper
@@ -11,40 +11,41 @@ different structure as specified by a schema.
 It can also be used for validating input structures.
 
 
-```coffeescript
+```javascript
 
-  theInput =
-    id: 123
-    userName: 'HappyLand'
-    color:
+  var theInput = {
+    id: 123,
+    userName: 'HappyLand',
+    color: {
       definition: '#7ff'
-    day: 'Mon'
-    month: 'Aug'
+    },
+    day: 'Mon',
+    month: 'Aug',
+  }
 
-  theDesiredOutput =
-    id: 123
-    name: 'HappyLand'
-    base:
-      color: '#7FF'
-      type: 'default'
+  var theDesiredOutput = {
+    id: 123,
+    name: 'HappyLand',
+    base:{
+      color: '#7FF',
       time: 'Mon - Aug'
+    }
+  }
 
+  // enters Cartography
+  var f = cartography.filters
 
-  # enters Cartography
-  {same, from, map, filters} = require 'cartography'
-  {required, optional, isString} = filters
+  var theSchemaToTranslateOneIntoTheOther = {
+    id: [f.required],
+    name: ['userName', f.isString],
+    base: {
+      color: ['color.definition', f.isString, function(v) {return v.toUpperCase()}],
+      time: function(inputObject) {return inputObject.day+' - '+inputObject.month}
+    }
+  }
 
-  theSchemaToTranslateOneIntoTheOther =
-    id: same required
-    name: from 'userName', isString
-    base:
-      color: from 'color.definition', isString, (v) -> v.toUpperCase()
-      type: same optional
-      time: (inputObject) -> "#{inputObject.day} - #{inputObject.month}"
-
-  assert.deepEqual map(theInput, theSchemaToTranslateOneIntoTheOther), theDesiredOutput
+  assert.deepEqual(cartography.map(theInput, theSchemaToTranslateOneIntoTheOther), theDesiredOutput)
 ```
-(All examples are in CoffeeScript, but Cartography is pure JavaScript.)
 
 The schema's structure resembles that of the output Object: it has the
 same attribute names and the same nested structure (if any), but each
@@ -86,12 +87,18 @@ cartographyCarSchema =
 
 Built-in filters
 ----------------
-* `optional`
-* `required`
-* `parseJSON`
-* `isString`
-* `isNumber`
-* `isInteger`
+* `optional`: if the value is `null` or `undefined` it will directly assign `undefined` to the target attribute,
+preventing any subsequent filter from being executed on the value.
+
+* `required`: throws an error if the value is `null` or `undefined`.
+
+* `parseJSON`: converts a JSON string into a JavaScript Object.
+
+* `isString`: throws if the value is not a string (will reject String objects).
+
+* `isNumber`: throws if the value is not a number (will reject Number objects).
+
+* `isInteger`: throws if the value is not an integer (will reject Number objects).
 
 
 Built-in filter factories
@@ -147,3 +154,8 @@ isPrimaryColor = filters.isOneOf ['red', 'green', 'blue']
 ```
 `filters.isOneOf` creates a filter that checks whether the value belongs to the given list.
 
+
+[npm-url]: https://npmjs.org/package/cartography
+[npm-image]: https://badge.fury.io/js/cartography.svg
+[daviddm-url]: https://david-dm.org/adslot/cartography.svg?theme=shields.io
+[daviddm-image]: https://david-dm.org/adslot/cartography

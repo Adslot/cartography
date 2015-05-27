@@ -1,4 +1,5 @@
 assert = require 'assert'
+fs = require 'fs'
 cartography = require '../index'
 
 
@@ -58,13 +59,18 @@ describe 'cartography', ->
     it 'should handle undeclared nested objects', ->
       assert.deepEqual map({}, a: from 'a.b.c.d'), undefined
 
+    it 'should be unfazed by undefined input', ->
+      assert.equal map(undefined, undefined), undefined
+      assert.equal map(undefined, {}), undefined
+      assert.equal map(undefined, a: same filters.optional), undefined
+
 
   describe 'error reporting', ->
 
     it 'should produce a descriptive error', ->
       input =
         id: 123
-        name: 456
+        userName: 456
 
       try map input, testSchema
       catch err
@@ -119,7 +125,7 @@ describe 'cartography', ->
     describe 'same()', ->
 
       it 'should return a flat array', ->
-        assert.deepEqual same(f3, [[f2], f1]), ['', f3, f2, f1]
+        assert.deepEqual same(f3, [[f2], f1]), [f3, f2, f1]
 
       it 'should produce an error if a filter is invalid', ->
         assert.throws (-> same {}), /filter must be function or Array/
@@ -199,3 +205,12 @@ describe 'cartography', ->
             assert.throws (-> filters[filterName](test.input)), test.error
           else
             assert.deepEqual filters[filterName](test.input), test.output ? test.input
+
+
+  describe 'README.md', ->
+
+    it 'should feature only examples that actually work', ->
+      fs.readFileSync('./README.md').toString()
+        .split('```javascript')[1..]
+        .map((t) -> t.replace /```[\s\S]*/g, '')
+        .forEach (snippet) -> eval snippet

@@ -32,11 +32,23 @@ var cartography = (function(){
 
     // Build destination attribute via a filters chain
     function runFilters(args, destinationAttribute) {
-      var sourceAttribute = args[0] || destinationAttribute;
-      var filters = Array.prototype.slice.call(args, 1);
 
-      var value = sourceAttribute.split('.').reduce((function(o, step) {return (o || {})[step];}), source);
-      return runFiltersOn(value, filters, function(message) {return addSeparator(sourceAttribute, message);});
+      // First argument is the source attribute path, all others are filter functions
+      if (typeof args[0] === 'string') {
+        var sourceAttributePath = args[0];
+        var filters = args.slice(1);
+        var value = sourceAttributePath.split('.').reduce((function(o, step) {return (o || {})[step];}), source);
+      }
+      // All arguments are filter functions
+      else
+      {
+        var sourceAttributePath = destinationAttribute;
+        var filters = args;
+        var value = (source || {})[sourceAttributePath];
+      }
+
+      function formatError (message) {return addSeparator(sourceAttributePath, message);};
+      return runFiltersOn(value, filters, formatError);
     };
 
     // Build destination attribute via a custom function
@@ -95,7 +107,7 @@ var cartography = (function(){
   };
 
 
-  function same() {return [''].concat(flatten(arguments));};
+  function same() {return flatten(arguments);};
 
 
   function from() {return [arguments[0]].concat(flatten(Array.prototype.slice.call(arguments, 1)));};
