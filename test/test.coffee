@@ -9,7 +9,7 @@ describe 'cartography', ->
 
   testSchema =
     id: same()
-    name: from 'userName', filters.isString
+    name: from 'userName', filters.defaults(0), filters.isString
     base:
       color: from 'color.definition', filters.isString, (v) -> v.toUpperCase()
       type: -> 'default'
@@ -43,6 +43,12 @@ describe 'cartography', ->
 
     it 'should reject strings as schema definitions', ->
       assert.throws (-> map {}, name: 'name'), /invalid schema for `name`/
+
+    it 'should interrupt the chain if a defaulted value is not provided', ->
+      input = anInput()
+      delete input.userName
+      output = map input, testSchema
+      assert.equal output.name, 0
 
     it 'should follow the filter chain if an optional attribute is provided', ->
       input = anInput()
@@ -139,6 +145,9 @@ describe 'cartography', ->
       it 'should produce an error if a filter is invalid', ->
         assert.throws (-> from 'meh', {}), /filter must be function or Array/
 
+      it 'should produce an error if path is invalid', ->
+        assert.throws (-> from (->)), /string/
+
 
   describe 'default filters', ->
 
@@ -146,6 +155,7 @@ describe 'cartography', ->
     # For testing purposes it's ok to monkey-patch `filters` with a product of theirs:
     filters.isArrayOfInts = filters.array filters.isInteger
     filters.isVowel = filters.isOneOf ['a', 'e', 'i', 'o', 'u']
+    filters.defaultsHi = filters.defaults 'Hi!'
 
     filterTestsByFilterName =
 
@@ -194,6 +204,15 @@ describe 'cartography', ->
         {input: 'u', output: 'u', verb: 'accepts an italian vowel'}
       ]
 
+      defaultsHi: [
+        {input: undefined, error: /./, verb: 'overrides undefined'}
+        {input: null, error: /./, verb: 'overrides null'}
+        {input: '', output: '', verb: "passes ''"}
+        {input: 0, output: 0, verb: 'passes 0'}
+        {input: {}, output: {}, verb: 'passes {}'}
+        {input: 11, output: 11, verb: 'passes 11'}
+      ]
+
 
     # describe ->
     for filterName, tests of filterTestsByFilterName then do (filterName, tests) -> describe "#{filterName}()", ->
@@ -209,8 +228,9 @@ describe 'cartography', ->
 
   describe 'README.md', ->
 
-    it 'should feature only examples that actually work', ->
-      fs.readFileSync('./README.md').toString()
-        .split('```javascript')[1..]
-        .map((t) -> t.replace /```[\s\S]*/g, '')
-        .forEach (snippet) -> eval snippet
+    fs.readFileSync('./README.md').toString()
+      .split('```javascript')[1..]
+      .map((t) -> t.replace /```[\s\S]*/g, '')
+      .forEach (snippet, index) ->
+        describe "snipped #{index}", -> it 'should actually work', ->
+          eval snippet
