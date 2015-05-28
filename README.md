@@ -1,119 +1,234 @@
 Cartography
 ===========
 
+[![NPM version][npm-image]][npm-url] [![Dependency Status][daviddm-url]][daviddm-image]
 [![Build Status](https://secure.travis-ci.org/Adslot/cartography.png?branch=master)](http://travis-ci.org/Adslot/cartography)
 
 Javascript Object to Object mapper
 
 Cartography takes an input Object and translates it into a new Object with a
-different structure according to a schema.
+different structure as specified by a schema.
 It can also be used for validating input structures.
 
-```coffeescript
-{same, from, map, filters, CartographyError} = require 'cartography'
-{required, isInteger, isOneOf} = filter
 
-isPositive = (v) -> if v > 0 then v else throw new CartographyError 'must be positive'
+```javascript
 
-cartographyUserSchema =
-  id: same isInteger
-  username: from 'email', required, (s) -> s.toLowerCase()
-  password: same required, isString
-  provider: -> 'Adslot'
-  maxShare: from 'sales.salePercentage', parseInt, isInteger, isPositive
-  address:
-    streetName: from 'addressStreet', required, isString
-    streetNumber: from 'addressNumber', required, isString
-    state: from 'addressState', isOneOf ['QLD', 'SA', 'ACT', 'NSW', 'VIC']
+  var theInput = {
+    id: 123,
+    userName: 'HappyLand',
+    color: {
+      definition: '#7ff'
+    },
+    day: 'Mon',
+    month: 'Aug',
+  }
 
-userInDBFormat = map userInTransferFormat, cartographyUserSchema
+  var theDesiredOutput = {
+    id: 123,
+    name: 'HappyLand',
+    base: {
+      color: '#7FF',
+      time: 'Mon - Aug'
+    }
+  }
+
+  // let's use Cartography
+  var f = cartography.filters
+
+  var theSchemaToTranslateOneIntoTheOther = {
+    id: [f.required, f.isInteger],
+    name: ['userName', f.isString],
+    base: {
+      color: ['color.definition', f.isString, function(v) {return v.toUpperCase()}],
+      time: function(inputObject) {return inputObject.day +' - '+ inputObject.month}
+    }
+  }
+
+  assert.deepEqual(cartography.map(theInput, theSchemaToTranslateOneIntoTheOther), theDesiredOutput)
 ```
-(All examples are in CoffeeScript, but Cartography is pure JavaScript.)
 
-The schema's structure resembles that of the output Object: it has the
+The schema's structure is the same as that of the output Object: it has the
 same attribute names and the same nested structure (if any), but each
 attribute value describes how obtain the final output value.
 
 Each attribute value can be one of three things: a list of filters, another
-schema object or a custom function.
+schema Object or a custom function.
 
+**Lists of filters** are Arrays of filters.
+If the name of the desired output attribute does not match the name and path of the source attribute,
+a different path string can be specified as the first element of the Array.
+This could be any attribute name (`'address'`, `'id'`, `'account'`) or path to a
+nested attribute (`'account.emailAddress'`, `'permissions.write.quota'`).
 
-**List of filters** are created by the factory methods `from` and `same`.
-`from`'s first argument is a path along the input Object to be used as initial
-value.
-This could be any attribute name ('address', 'id', 'account') or path to a
-nested attribute ('account.emailAddress', 'permissions.write.quota').
-All the remainder arguments are filters, applied from left to right to the
-retrieved initial value.
+A **filter** can be any function that accepts a single argument as its input value
+and returns the transformed value.
+Filters are executed on the input value one after the other.
 
-`same` works not unlike `from`, but assumes that the input attribute name is
-the same as the output attribute name: `id: same required` is equivalent to
-`id: from 'id', required`.
-
-A *filter* can be any function that accepts an argument as its input value
-and returns an output value.
-Filters can be used for checking the input validity by throwing a
-`CartographyError` if the input is not valid and returning it normally
-otherwise.
+When the input is not valid, a filter can throw a `CartographyError`:
 `CartographyError`s are collected by the `map` method and decorated with the
 full path of the input value that caused the error.
 
-Some filters are provided in the `filters` Object.
+A convenient way to create validation filters is to use the `.filters.assert` factory.
 
 
 **Custom functions** are passed the input Object as argument and their output
 is used as final value for the output attribute.
-```
-cartographyCarSchema =
-  manifacturer: -> 'Adslot'
-  name: (car) -> "#{car.model} #{car.variant}"
-```
-
-
-Example usage
--------------
-```
-inputUser =
-  id: 3
-  email: 'joe.lizard@reptiles.com'
-  password: '12345'
-  sales:
-    saleCount: 56
-    salePercentage: 23
-  addressStreet: 'rock st'
-  addressNumber: '21/a'
-  addressState: 'VIC'
-
-outputUser = map cartographyUserSchema, inputUser
-
- * outputUser will yield:
-  id: 3
-  username: 'joe.lizard@reptiles.com'
-  password: '12345'
-  provider: 'Adslot'
-  maxShare: 23
-  address:
-    streetName: 'rock st'
-    streetNumber: '21/a'
-    state: 'VIC'
+```javascript
+var cartographyCarSchema = {
+  manifacturer: function(){return 'Adslot'},
+  name: function(car){return car.model +' '+ car.variant}
+}
 ```
 
-If `inputUser` contained no `sales` attribute or no `salePercentage` within
-`sales`, `map()` would throw a `CartographyError` with a
-"sales.salePercentage: is required" `message`.
+
+MAIN API
+--------
+
+### map(source, schema)
+Translates the `source` object according to the given `schema` and returns the result.
+Any field of the schema whose final value is `undefined` will not appear in the result.
+If no fields have defined values, `map` will return `undefined` rather than an empty Object.
 
 
-Asynchronous version
---------------------
-`asyncMap` is a fully asynchronous version of `map`, which will return
-`CartographyError`s to the provided callback instead of throwing them.
-In addition to the usual synchronous filters and custom functions, `asyncMap`
-can use asynchronous filters and asynchronous custom functions provided they
-are wrapped by the `async` function decorator.
-The `asyncArray` filter should also be used in place of `array`.
+### CartographyError(message)
+This is the error that should be thrown when a filter encounters an invalid value.
+Cartography will add the full path of the invalid input to the error message.
 
 
+### isCartographyError(object)
+Returns `true` if the given argument is a `CartographyError`.
 
-TODO
-----
-Improve this README
+
+### FilterChainBreak(finalValue)
+Is a special Error used to interrupt the chain of filters.
+If a filter throws this, all subsequent filters are ignored and the final attribute value
+is set to `finalValue`.
+`FilterChainBreak` is used internally by `filters.optional` and `filters.default`.
+
+
+### from(sourcePath, filters...), same(filters...)
+These are two helpers to create lists of filters.
+They have three main advantages:
+
+1. They validate the input
+2. They flatten nested arrays
+3. They may or may not look nicer than Arrays in CoffeeScript
+
+```coffeescript
+  {from, same, filters: {required, isString}} = cartography
+
+  theSchemaToTranslateOneIntoTheOther =
+    id: same required, isInteger
+    name: from 'userName', isString
+    base:
+      color: from 'color.definition', isString, (v) -> v.toUpperCase()
+      time: (inputObject) -> "#{inputObject.day} - #{inputObject.month}"
+```
+
+
+Built-in filters
+----------------
+
+### filters.optional
+If the value is `null` or `undefined` it will directly assign `undefined` to the target attribute,
+preventing any subsequent filter from being executed on the value.
+Otherwise, it will pass the value as it is to the next filter.
+
+
+### filters.defaults(defaultValue)
+If the value is `null` or `undefined` it will directly assign `defaultValue` to the target attribute,
+preventing any subsequent filter from being executed on the value.
+Otherwise, it will pass the value as it is to the next filter.
+
+
+### filters.required
+Throws if the value is `null` or `undefined`.
+
+
+### filters.array(filters...)
+```javascript
+var input = {
+  aListOfStuff: [1, 4, 5]
+}
+
+var schema = {
+  list: ['aListOfStuff', filters.array(filters.isInteger, function(n){return n+'.0'})]
+}
+
+var expectedOutput = {
+  list: ['1.0', '4.0', '5.0']
+}
+
+assert.deepEqual(cartography.map(input, schema), expectedOutput)
+```
+`filters.array` ensures that the value is an Array and applies the specified `filters`, if any, to each element of the value.
+If `filters` contain any nested Array, they will be flattened.
+
+
+### filters.object(schema)
+```javascript
+var input = {
+  someHash: {
+    a: 1,
+    b: 'hello!',
+    c: ['blue', 'black'],
+  }
+}
+
+var schema = {
+  keys: ['someHash', filters.object({
+    a: [filters.isNumber],
+    b: [filters.isString, function(s) {return '**'+ s +'**'}],
+    c: [filters.array(filters.isString)]
+  })]
+}
+
+var expectedOutput = {
+  keys: {
+    a: 1,
+    b: '**hello!**',
+    c: ['blue', 'black']
+  }
+}
+
+assert.deepEqual(map(input, schema), expectedOutput)
+```
+`filters.object` creates a filter that passes the value through `cartography.map` with the given nested schema.
+
+
+### filters.assert(condition, errorMessage)
+```javascript
+var isEven = filters.assert(function(n){return n % 2 === 0}, 'must be even')
+```
+Returns a filter that asserts for the given condition, producing a `CartographyError` with the provided
+message if the condition is not met.
+
+
+### filters.parseJSON
+Converts a JSON string into a JavaScript Object.
+
+
+### filters.isString
+Throws if the value is not a [primitive][MDN] string.
+
+
+### filters.isNumber
+Throws if the value is not a [primitive][MDN] number.
+
+
+### filters.isInteger
+Throws if the value is not an integer and a [primitive][MDN] number.
+
+
+### filters.isOneOf(list)
+```
+isPrimaryColor = filters.isOneOf ['red', 'green', 'blue']
+```
+Returns a filter that checks whether the value belongs to the given list.
+
+
+[MDN]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String#Distinction_between_string_primitives_and_String_objects
+[npm-url]: https://npmjs.org/package/cartography
+[npm-image]: https://badge.fury.io/js/cartography.svg
+[daviddm-url]: https://david-dm.org/adslot/cartography.svg?theme=shields.io
+[daviddm-image]: https://david-dm.org/adslot/cartography

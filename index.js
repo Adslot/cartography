@@ -1,11 +1,4 @@
-var cartography = (function(){
-
-  // Try go get the async module from somewhere
-  var _async =
-    typeof require === "function" ? require('async') :
-    typeof async !== 'undefined' ? async :
-    null;
-
+var cartography = (function() {
 
   // This can be thrown by a filter to prevent successive filters from being executed
   function FilterChainBreak(value) {this.value = value;}
@@ -20,124 +13,53 @@ var cartography = (function(){
   CartographyError.prototype = Object.create(Error.prototype);
   CartographyError.prototype.name = 'CartographyError';
 
-  function isCartographyError(err) {return err instanceof CartographyError;};
-
-
-  // Turn a synchronous function into an asynchronous one
-  function asyncWrap(f) {
-    return function(v, cb) {
-      try {v = f(v);} catch (exception) {return cb(exception);}
-      cb(null, v);
-    };
-  };
-
-
-  // Flag (and wrap) a function as asynchronous
-  function asyncDecorator(fn) {
-    function wrapper() {return fn.apply(null, arguments);};
-    wrapper.isAsynchronous = true;
-    return wrapper;
-  };
-
-
-  // Execute a filters chain
-  function asyncRunFiltersOn (value, filters, decorateMessage, cb) {
-    filters = filters.map(function(f) {return f.isAsynchronous ? f : asyncWrap(f);});
-    _async.waterfall(
-      [(function(cb) {cb(null, value);})].concat(filters),
-      (function(err, value) {
-        if (err) {
-          if (err instanceof FilterChainBreak) return cb(null, err.value);
-          if (isCartographyError(err)) err.message = decorateMessage(err.message);
-          return cb(err);
-        }
-        cb(null, value);
-      })
-    );
-  };
+  function isCartographyError(err) {return err instanceof CartographyError;}
 
 
   function runFiltersOn(value, filters, decorateMessage) {
     try {
-      return filters.reduce((function(value, filter) {return filter(value);}), value);
+      return filters.reduce(function(value, filter) {return filter(value);}, value);
     } catch (exception) {
       if (exception instanceof FilterChainBreak) return exception.value;
       if (isCartographyError(exception)) exception.message = decorateMessage(exception.message);
       throw exception;
     }
-  };
+  }
 
 
   // Main mapping function
-  function asyncMap(source, schema, cb) {
-    if (!_async) throw new Error('asyncMap requires caolan/async module');
-
-    // Build destination attribute via a filters chain
-    function runFilters(args, destinationAttribute, cb) {
-      var sourceAttribute = args[0] || destinationAttribute;
-      var filters = Array.prototype.slice.call(args, 1);
-
-      var value = sourceAttribute.split('.').reduce((function(o, step) {return (o || {})[step];}), source);
-      asyncRunFiltersOn(value, filters, (function(message) {return addSeparator(sourceAttribute, message);}), cb);
-    };
-
-    // Build destination attribute via a custom function
-    function callCustomFunction(fn, attr, cb) {
-      if (fn.isAsynchronous) fn(source, cb); else cb(null, fn(source));
-    };
-
-    // Destination attribute is an Object with a nested schema
-    function goRecursive(schema, attr, cb) {
-      asyncMap(source, schema, cb);
-    };
-
-
-    // Produce all values asynchronously
-    var parallelTasks = {};
-    for (var destinationAttribute in schema) {
-      var value = schema[destinationAttribute];
-
-      var method =
-        Array.isArray(value) ? runFilters :
-        typeof value === 'function' ? callCustomFunction :
-        goRecursive;
-
-      parallelTasks[destinationAttribute] = (function(method, destinationAttribute, value) {
-        return function(cb) {method(value, destinationAttribute, cb);};
-      })(method, destinationAttribute, value);
-    }
-
-    _async.parallel(parallelTasks, function(err, result) {
-      if (err) return cb(err);
-
-      // Delete null attributes
-      for (var k in result) if (result[k] == null) delete result[k];
-
-      // Return result only if there's at least one attribute
-      for (var k in result) return cb(null, result);
-
-      // Return undefined
-      cb(null, undefined);
-    });
-  };
-
-
   function map(source, schema) {
 
     // Build destination attribute via a filters chain
     function runFilters(args, destinationAttribute) {
-      var sourceAttribute = args[0] || destinationAttribute;
-      var filters = Array.prototype.slice.call(args, 1);
+      var sourceAttributePath, filters, value;
 
-      var value = sourceAttribute.split('.').reduce((function(o, step) {return (o || {})[step];}), source);
-      return runFiltersOn(value, filters, function(message) {return addSeparator(sourceAttribute, message);});
-    };
+      // First argument is the source attribute path, all others are filter functions
+      if (typeof args[0] === 'string') {
+        var sourceAttributePath = args[0];
+        var filters = args.slice(1);
+        var value = sourceAttributePath.split('.').reduce(function(o, step) {return (o || {})[step];}, source);
+      }
+      // All arguments are filter functions
+      else
+      {
+        var sourceAttributePath = destinationAttribute;
+        var filters = args;
+        var value = (source || {})[sourceAttributePath];
+      }
+
+      function formatError (message) {return addSeparator(sourceAttributePath, message);}
+      return runFiltersOn(value, filters, formatError);
+    }
 
     // Build destination attribute via a custom function
-    function callCustomFunction(fn) {return fn(source);};
+    function callCustomFunction(fn) {return fn(source);}
 
     // Destination attribute is an Object with a nested schema
-    function goRecursive(schema) {return map(source, schema);};
+    function goRecursive(schema) {return map(source, schema);}
+
+    // Error: a string was used. Throw an exception
+    function rejectString(s, destinationAttribute) {throw new Error('invalid schema for `'+destinationAttribute+'`');}
 
     var destination = {};
     var length = 0;
@@ -148,6 +70,7 @@ var cartography = (function(){
       var method =
         Array.isArray(value) ? runFilters :
         typeof value === 'function' ? callCustomFunction :
+        typeof value === 'string' ? rejectString :
         goRecursive;
 
       var value = method(value, destinationAttribute);
@@ -159,53 +82,53 @@ var cartography = (function(){
 
     if (length) return destination;
     return undefined;
-  };
+  }
 
 
-  function addSeparator(sourceAttribute, message) {
+  function addSeparator(sourceAttributePath, message) {
     // check that message is like "foo: bar" and neither ": bar" nor "[0]: bar"
     var sep = /^[^[:].*:/.test(message) ? '.' : '';
-    return sourceAttribute + sep + message;
-  };
+    return sourceAttributePath + sep + message;
+  }
 
 
-  function flatten(array, flat) {
-    if (flat == null) flat = [];
-
+  function flatten(array, flat, start) {
     var type = Object.prototype.toString.call(array);
     if (type !== '[object Array]' && type !== '[object Arguments]')
-      throw new Error('Filter must be function or Array, but ' +type+ ' found');
+      throw new Error('filter must be function or Array, but ' +type+ ' found');
 
-    for (var i = 0; i < array.length; i++) {
+    for (var i = start; i < array.length; i++) {
       var e = array[i];
-      if (typeof e === 'function') flat.push(e); else flatten(e, flat);
+      if (typeof e === 'function') flat.push(e); else flatten(e, flat, 0);
     }
 
     return flat;
-  };
+  }
 
 
-  function same() {return [''].concat(flatten(arguments));};
+  function same() {return flatten(arguments, [], 0);}
 
 
-  function from() {return [arguments[0]].concat(flatten(Array.prototype.slice.call(arguments, 1)));};
+  function from() {
+    var path = arguments[0];
+    if (typeof path !== 'string') throw new Error('first argument must be a string');
+    return [path].concat(flatten(arguments, [], 1));
+  }
+
+
+  function assertFactory(test, message) {
+    return function(v) {
+      if (test(v)) return v;
+      throw new CartographyError(typeof message === 'function' ? message(v) : message);
+    };
+  }
 
 
   var filters = {
 
-    asyncArray: function() {
-      var filters = flatten(arguments);
-      return asyncDecorator(function(a, cb) {
-        if (!Array.isArray(a)) return cb(new CartographyError('must be an Array'));
-
-        _async.timesSeries(a.length, function(index, cb) {
-          asyncRunFiltersOn(a[index], filters, (function(message) {return addSeparator('['+index+']', message);}), cb);
-        }, cb);
-      });
-    },
 
     array: function() {
-      var filters = flatten(arguments);
+      var filters = flatten(arguments, [], 0);
       return function(a) {
         if (!Array.isArray(a)) throw new CartographyError('must be an Array');
 
@@ -215,27 +138,33 @@ var cartography = (function(){
       };
     },
 
+
+    object: function(schema) {
+      return function(v) {
+        return map(v, schema);
+      };
+    },
+
+
     optional: function(v) {
       if (v != null) return v;
       throw new FilterChainBreak;
     },
 
-    required: function(v) {
-      if (v != null) return v;
-      throw new CartographyError('is required');
-    },
 
-    isOneOf: function(valids) {
-      return function(e) {
-        if (~valids.indexOf(e)) return e;
-        throw new CartographyError('unrecognized value');
+    defaults: function(defaultValue) {
+      return function(v) {
+        if (v != null) return v;
+        throw new FilterChainBreak(defaultValue);
       };
     },
 
-    isString: function(s) {
-      if (Object.prototype.toString.call(s) === '[object String]') return s;
-      throw new CartographyError('must be a string');
-    },
+
+    required: assertFactory(function(v) {return v != null;}, 'is required'),
+
+
+    assert: assertFactory,
+
 
     parseJSON: function(s) {
       try {
@@ -245,28 +174,42 @@ var cartography = (function(){
       }
     },
 
-    isNumber: function(n) {
-      if (Object.prototype.toString.call(n) === '[object Number]') return n;
-      throw new CartographyError('must be a number');
+
+    isOneOf: function(valids) {
+      return assertFactory(function(v) {
+        return ~valids.indexOf(v);
+      }, 'unrecognized value');
     },
 
-    isInteger: function(n) {
-      if (n === Math.floor(n) && Object.prototype.toString.call(n) === '[object Number]') return n;
-      throw new CartographyError('must be an integer number');
-    }
+
+    isString: assertFactory(function(v) {
+      //return Object.prototype.toString.call(v) === '[object String]'
+      return typeof v === 'string';
+    }, 'must be a string'),
+
+
+    isNumber: assertFactory(function(v) {
+      //return Object.prototype.toString.call(v) === '[object Number]' && !isNaN(v)
+      return typeof v === 'number' && !isNaN(v);
+    }, 'must be a number'),
+
+
+    isInteger: assertFactory(function(v) {
+      //return v === Math.floor(v) && Object.prototype.toString.call(v) === '[object Number]'
+      return v === Math.floor(v) && typeof v === 'number';
+    }, 'must be an integer number')
   };
 
 
-  if (typeof module === 'undefined') module = {};
-  return module.exports = {
+  var exports = {
     CartographyError: CartographyError,
     FilterChainBreak: FilterChainBreak,
     isCartographyError: isCartographyError,
-    async: asyncDecorator,
-    asyncMap: asyncMap,
     map: map,
     same: same,
     from: from,
     filters: filters
-  }
+  };
+  if (typeof module !== 'undefined') module.exports = exports;
+  return exports;
 })();

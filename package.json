@@ -1,10 +1,11 @@
 {
   "name": "cartography",
-  "version": "0.0.2",
-  "description": "Opbect to Object mapper",
+  "version": "0.1.0",
+  "description": "Object to Object mapper",
   "main": "index.js",
   "scripts": {
-    "test": "mocha -t 100s"
+    "test": "mocha -t 100s --compilers coffee:coffee-script/register && jshint index.js",
+    "coverage": "istanbul cover _mocha -- -t 100s --compilers coffee:coffee-script/register"
   },
   "repository": {
     "type": "git",
@@ -23,10 +24,10 @@
     "url": "http://github.com/Adslot"
   },
   "license": "MIT",
-  "dependencies": {
-    "async": "0.9.0"
-  },
   "devDependencies": {
+    "coffee-script": "1.9.x",
+    "jshint": "2.5.10",
+    "istanbul": "0.3.x",
     "mocha": "~1.13.0"
   },
   "readmeFilename": "README.md",
