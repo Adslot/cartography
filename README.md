@@ -2,7 +2,7 @@ Cartography
 ===========
 
 [![NPM version][npm-image]][npm-url] [![Dependency Status][daviddm-url]][daviddm-image]
-[![Build Status](https://secure.travis-ci.org/Adslot/cartography.png?branch=master)](http://travis-ci.org/Adslot/cartography)
+[![Build Status](https://api.travis-ci.org/Adslot/cartography.png)](http://travis-ci.org/Adslot/cartography)
 
 Javascript Object to Object mapper
 
