@@ -1,11 +1,11 @@
 {
   "name": "cartography",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Object to Object mapper",
   "main": "index.js",
   "scripts": {
-    "test": "mocha -t 100s --compilers coffee:coffee-script/register && jshint index.js",
-    "coverage": "istanbul cover _mocha -- -t 100s --compilers coffee:coffee-script/register"
+    "test": "mocha -t 100s --require coffee-script/register test/**/*.{js,coffee} && jshint index.js",
+    "coverage": "nyc --reporter=html --reporter=lcov --reporter=json-summary --reporter=text-summary _mocha -- -t 100s --require coffee-script/register test/**/*.{js,coffee}"
   },
   "repository": {
     "type": "git",
@@ -26,13 +26,14 @@
   "license": "MIT",
   "devDependencies": {
     "coffee-script": "1.9.x",
-    "jshint": "2.5.10",
-    "istanbul": "0.3.x",
-    "mocha": "~1.13.0"
+    "jshint": "^2.11.0",
+    "mocha": "^7.1.1",
+    "nyc": "^15.0.0"
   },
   "readmeFilename": "README.md",
   "bugs": {
     "url": "https://github.com/Adslot/cartography/issues"
   },
-  "homepage": "https://github.com/Adslot/cartography"
+  "homepage": "https://github.com/Adslot/cartography",
+  "dependencies": {}
 }
