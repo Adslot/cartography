@@ -27,6 +27,13 @@ var cartography = (function() {
   }
 
 
+  function addSeparator(sourceAttributePath, message) {
+    // check that message is like "foo: bar" and neither ": bar" nor "[0]: bar"
+    var sep = /^[^[:].*:/.test(message) ? '.' : '';
+    return sourceAttributePath + sep + message;
+  }
+
+
   // Main mapping function
   function map(source, schema) {
 
@@ -82,13 +89,6 @@ var cartography = (function() {
 
     if (length) return destination;
     return undefined;
-  }
-
-
-  function addSeparator(sourceAttributePath, message) {
-    // check that message is like "foo: bar" and neither ": bar" nor "[0]: bar"
-    var sep = /^[^[:].*:/.test(message) ? '.' : '';
-    return sourceAttributePath + sep + message;
   }
 
 
