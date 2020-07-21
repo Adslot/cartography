@@ -5,7 +5,12 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha -t 100s --require coffee-script/register test/**/*.{js,coffee} && jshint index.js",
-    "coverage": "nyc --reporter=html --reporter=lcov --reporter=json-summary --reporter=text-summary _mocha -- -t 100s --require coffee-script/register test/**/*.{js,coffee}"
+    "coverage": "nyc --reporter=html --reporter=lcov --reporter=json-summary --reporter=text-summary _mocha -- -t 100s --require coffee-script/register test/**/*.{js,coffee}",
+    "postversion": "git push -u origin $(git rev-parse --abbrev-ref HEAD) --follow-tags && npm publish && echo '…released.'",
+    "preversion": "echo 'Releasing…' && npm ci",
+    "release:major": "npm version major -m 'build: release major version %s'",
+    "release:minor": "npm version minor -m 'build: release minor version %s'",
+    "release:patch": "npm version patch -m 'build: release patch version %s'"
   },
   "repository": {
     "type": "git",
