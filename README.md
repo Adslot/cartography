@@ -1,8 +1,8 @@
 Cartography
 ===========
 
-[![NPM version][npm-image]][npm-url] [![Dependency Status][daviddm-url]][daviddm-image]
-[![Build Status](https://api.travis-ci.org/Adslot/cartography.png)](http://travis-ci.org/Adslot/cartography)
+[![NPM version][npm-image]][npm-url]
+![Build Status](https://github.com/Adslot/cartography/workflows/Node.js%20CI/badge.svg)
 
 Javascript Object to Object mapper
 
