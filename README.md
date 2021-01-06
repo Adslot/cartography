@@ -90,6 +90,11 @@ Any field of the schema whose final value is `undefined` will not appear in the 
 If no fields have defined values, `map` will return `undefined` rather than an empty Object.
 
 
+### mapArray(source, schema)
+Translates all elements the `source` array according to the given `schema` and returns the result.
+The `schema` can be an array of filters or a schema (that applies to an array of objects)
+
+
 ### CartographyError(message)
 This is the error that should be thrown when a filter encounters an invalid value.
 Cartography will add the full path of the invalid input to the error message.
