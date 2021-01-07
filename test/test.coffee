@@ -5,7 +5,7 @@ cartography = require '../index'
 
 describe 'cartography', ->
 
-  {map, from, same, filters, isCartographyError, CartographyError} = cartography
+  {map, mapArray, from, same, filters, isCartographyError, CartographyError} = cartography
 
   testSchema =
     id: same()
@@ -69,6 +69,15 @@ describe 'cartography', ->
       assert.equal map(undefined, undefined), undefined
       assert.equal map(undefined, {}), undefined
       assert.equal map(undefined, a: same filters.optional), undefined
+
+
+  describe 'array behaviour', ->
+
+    it 'should translate an array', ->
+      assert.deepEqual mapArray([1], [filters.isNumber, (v) -> v * 2]), [2]
+
+    it 'should translate an array of objects', ->
+      assert.deepEqual mapArray([anInput()], testSchema), [theExpectedOutput()]
 
 
   describe 'error reporting', ->

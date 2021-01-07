@@ -40,5 +40,11 @@
     "url": "https://github.com/Adslot/cartography/issues"
   },
   "homepage": "https://github.com/Adslot/cartography",
-  "dependencies": {}
+  "dependencies": {},
+  "prettier": {
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "arrowParens": "always",
+    "printWidth": 120
+  }
 }
