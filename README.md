@@ -90,9 +90,11 @@ Any field of the schema whose final value is `undefined` will not appear in the 
 If no fields have defined values, `map` will return `undefined` rather than an empty Object.
 
 
-### mapArray(source, schema)
+### mapArray(source, schema, [arrayFilters])
 Translates all elements the `source` array according to the given `schema` and returns the result.
-The `schema` can be an array of filters or a schema (that applies to an array of objects)
+The `schema` can be an array of filters or a schema (that applies to an array of objects).
+The optional `arrayFilters` is an array of filters that apply to the source array before
+the translation of the elements.
 
 
 ### CartographyError(message)

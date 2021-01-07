@@ -200,9 +200,9 @@
     }, 'must be an integer number'),
   };
 
-  function mapArray(source, schema) {
+  function mapArray(source, schema, arrayFilters = []) {
     const arraySchema = Array.isArray(schema) ? schema : filters.object(schema);
-    const results = map({ array: source }, { array: same(filters.array(arraySchema)) });
+    const results = map({ array: source }, { array: same(arrayFilters, filters.array(arraySchema)) });
     return results.array;
   }
 
