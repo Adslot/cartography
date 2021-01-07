@@ -50,7 +50,8 @@ describe('cartography', function () {
   });
 
   describe('basic behaviour', function () {
-    it('should translate a basic Object', () => assert.deepEqual(map(anInput(), testSchema), theExpectedOutput()));
+    it('should translate a basic Object', () =>
+      assert.deepStrictEqual(map(anInput(), testSchema), theExpectedOutput()));
 
     it('should return null rather than an empty object', () => assert(!map({}, { unused: from('nothing') })));
 
@@ -61,7 +62,7 @@ describe('cartography', function () {
       const input = anInput();
       delete input.userName;
       const output = map(input, testSchema);
-      return assert.equal(output.name, 0);
+      assert.strictEqual(output.name, 0);
     });
 
     it('should follow the filter chain if an optional attribute is provided', function () {
@@ -71,26 +72,33 @@ describe('cartography', function () {
       const expectedOutput = theExpectedOutput();
       expectedOutput.failure = 'hello';
 
-      assert.deepEqual(map(input, testSchema), expectedOutput);
+      assert.deepStrictEqual(map(input, testSchema), expectedOutput);
 
       input.failure = 'Whooop';
-      return assert.throws(() => map(input, testSchema), /Whooop should be falsy/);
+      assert.throws(() => map(input, testSchema), /Whooop should be falsy/);
     });
 
-    it('should handle undeclared nested objects', () => assert.deepEqual(map({}, { a: from('a.b.c.d') }), undefined));
+    it('should handle undeclared nested objects', () =>
+      assert.deepStrictEqual(map({}, { a: from('a.b.c.d') }), undefined));
 
-    return it('should be unfazed by undefined input', function () {
-      assert.equal(map(undefined, undefined), undefined);
-      assert.equal(map(undefined, {}), undefined);
-      return assert.equal(map(undefined, { a: same(filters.optional) }), undefined);
+    it('should be unfazed by undefined input', function () {
+      assert.strictEqual(map(undefined, undefined), undefined);
+      assert.strictEqual(map(undefined, {}), undefined);
+      assert.strictEqual(map(undefined, { a: same(filters.optional) }), undefined);
     });
   });
 
   describe('array behaviour', function () {
-    it('should translate an array', () => assert.deepEqual(mapArray([1], [filters.isNumber, (v) => v * 2]), [2]));
+    it('should translate an array', () => assert.deepStrictEqual(mapArray([1], [filters.isNumber, (v) => v * 2]), [2]));
 
-    return it('should translate an array of objects', () =>
-      assert.deepEqual(mapArray([anInput()], testSchema), [theExpectedOutput()]));
+    it('should translate an array with array filters', () =>
+      assert.deepStrictEqual(
+        mapArray([1, 2], [filters.isNumber, (v) => v * 2], [(array) => array.filter((v) => v % 2 === 0)]),
+        [4]
+      ));
+
+    it('should translate an array of objects', () =>
+      assert.deepStrictEqual(mapArray([anInput()], testSchema), [theExpectedOutput()]));
   });
 
   describe('error reporting', function () {
@@ -130,7 +138,7 @@ describe('cartography', function () {
       throw new Error('no error produced');
     });
 
-    return it('should produce a well-formatted error for nested attributes', function () {
+    it('should produce a well-formatted error for nested attributes', function () {
       const input = {
         id: '111',
         location: {
@@ -150,7 +158,7 @@ describe('cartography', function () {
         ),
       };
 
-      return assert.throws(() => map(input, schema), /location.colors\[2\]: must be a number/);
+      assert.throws(() => map(input, schema), /location.colors\[2\]: must be a number/);
     });
   });
 
@@ -162,24 +170,23 @@ describe('cartography', function () {
     describe('isCartographyError()', () =>
       it('should work at least', function () {
         assert(isCartographyError(new CartographyError()));
-        return assert(!isCartographyError(new Error()));
+        assert(!isCartographyError(new Error()));
       }));
 
     describe('same()', function () {
-      it('should return a flat array', () => assert.deepEqual(same(f3, [[f2], f1]), [f3, f2, f1]));
+      it('should return a flat array', () => assert.deepStrictEqual(same(f3, [[f2], f1]), [f3, f2, f1]));
 
-      return it('should produce an error if a filter is invalid', () =>
+      it('should produce an error if a filter is invalid', () =>
         assert.throws(() => same({}), /filter must be function or Array/));
     });
 
-    return describe('from()', function () {
-      it('should return a flat array', () => assert.deepEqual(from('meh', [f1, f2], f3), ['meh', f1, f2, f3]));
+    describe('from()', function () {
+      it('should return a flat array', () => assert.deepStrictEqual(from('meh', [f1, f2], f3), ['meh', f1, f2, f3]));
 
       it('should produce an error if a filter is invalid', () =>
         assert.throws(() => from('meh', {}), /filter must be function or Array/));
 
-      return it('should produce an error if path is invalid', () =>
-        assert.throws(() => from(function () {}), /string/));
+      it('should produce an error if path is invalid', () => assert.throws(() => from(function () {}), /string/));
     });
   });
 
