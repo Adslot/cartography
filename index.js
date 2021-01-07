@@ -1,4 +1,4 @@
-var cartography = (function () {
+(function () {
   // This can be thrown by a filter to prevent successive filters from being executed
   function FilterChainBreak(value) {
     this.value = value;
@@ -19,8 +19,8 @@ var cartography = (function () {
 
   function runFiltersOn(value, filters, decorateMessage) {
     try {
-      return filters.reduce(function (value, filter) {
-        return filter(value);
+      return filters.reduce(function (v, filter) {
+        return filter(v);
       }, value);
     } catch (exception) {
       if (exception instanceof FilterChainBreak) return exception.value;
@@ -31,7 +31,7 @@ var cartography = (function () {
 
   function addSeparator(sourceAttributePath, message) {
     // check that message is like "foo: bar" and neither ": bar" nor "[0]: bar"
-    var sep = /^[^[:].*:/.test(message) ? '.' : '';
+    const sep = /^[^[:].*:/.test(message) ? '.' : '';
     return sourceAttributePath + sep + message;
   }
 
@@ -39,21 +39,21 @@ var cartography = (function () {
   function map(source, schema) {
     // Build destination attribute via a filters chain
     function runFilters(args, destinationAttribute) {
-      var sourceAttributePath, filters, value;
+      let sourceAttributePath, filters, value;
 
       // First argument is the source attribute path, all others are filter functions
       if (typeof args[0] === 'string') {
-        var sourceAttributePath = args[0];
-        var filters = args.slice(1);
-        var value = sourceAttributePath.split('.').reduce(function (o, step) {
+        sourceAttributePath = args[0];
+        filters = args.slice(1);
+        value = sourceAttributePath.split('.').reduce(function (o, step) {
           return (o || {})[step];
         }, source);
       }
       // All arguments are filter functions
       else {
-        var sourceAttributePath = destinationAttribute;
-        var filters = args;
-        var value = (source || {})[sourceAttributePath];
+        sourceAttributePath = destinationAttribute;
+        filters = args;
+        value = (source || {})[sourceAttributePath];
       }
 
       function formatError(message) {
@@ -68,8 +68,8 @@ var cartography = (function () {
     }
 
     // Destination attribute is an Object with a nested schema
-    function goRecursive(schema) {
-      return map(source, schema);
+    function goRecursive(nestedSchema) {
+      return map(source, nestedSchema);
     }
 
     // Error: a string was used. Throw an exception
@@ -77,12 +77,12 @@ var cartography = (function () {
       throw new Error('invalid schema for `' + destinationAttribute + '`');
     }
 
-    var destination = {};
-    var length = 0;
-    for (var destinationAttribute in schema) {
-      var value = schema[destinationAttribute];
+    const destination = {};
+    let length = 0;
+    for (const destinationAttribute in schema) {
+      let value = schema[destinationAttribute];
 
-      var method = Array.isArray(value)
+      const method = Array.isArray(value)
         ? runFilters
         : typeof value === 'function'
         ? callCustomFunction
@@ -90,7 +90,7 @@ var cartography = (function () {
         ? rejectString
         : goRecursive;
 
-      var value = method(value, destinationAttribute);
+      value = method(value, destinationAttribute);
       if (value != null) {
         destination[destinationAttribute] = value;
         length++;
@@ -102,12 +102,12 @@ var cartography = (function () {
   }
 
   function flatten(array, flat, start) {
-    var type = Object.prototype.toString.call(array);
+    const type = Object.prototype.toString.call(array);
     if (type !== '[object Array]' && type !== '[object Arguments]')
       throw new Error('filter must be function or Array, but ' + type + ' found');
 
-    for (var i = start; i < array.length; i++) {
-      var e = array[i];
+    for (let i = start; i < array.length; i++) {
+      const e = array[i];
       if (typeof e === 'function') flat.push(e);
       else flatten(e, flat, 0);
     }
@@ -120,7 +120,7 @@ var cartography = (function () {
   }
 
   function from() {
-    var path = arguments[0];
+    const path = arguments[0];
     if (typeof path !== 'string') throw new Error('first argument must be a string');
     return [path].concat(flatten(arguments, [], 1));
   }
@@ -132,14 +132,14 @@ var cartography = (function () {
     };
   }
 
-  var filters = {
+  const filters = {
     array: function () {
-      var filters = flatten(arguments, [], 0);
+      const arrayFilters = flatten(arguments, [], 0);
       return function (a) {
         if (!Array.isArray(a)) throw new CartographyError('must be an Array');
 
         return a.map(function (element, index) {
-          return runFiltersOn(element, filters, function (message) {
+          return runFiltersOn(element, arrayFilters, function (message) {
             return addSeparator('[' + index + ']', message);
           });
         });
@@ -201,12 +201,12 @@ var cartography = (function () {
   };
 
   function mapArray(source, schema) {
-    var arraySchema = Array.isArray(schema) ? schema : filters.object(schema);
-    var results = map({ array: source }, { array: same(filters.array(arraySchema)) });
+    const arraySchema = Array.isArray(schema) ? schema : filters.object(schema);
+    const results = map({ array: source }, { array: same(filters.array(arraySchema)) });
     return results.array;
   }
 
-  var exports = {
+  const exports = {
     CartographyError: CartographyError,
     FilterChainBreak: FilterChainBreak,
     isCartographyError: isCartographyError,

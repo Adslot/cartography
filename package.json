@@ -4,8 +4,8 @@
   "description": "Object to Object mapper",
   "main": "index.js",
   "scripts": {
-    "test": "mocha -t 100s --require coffee-script/register test/**/*.{js,coffee} && jshint index.js",
-    "coverage": "nyc --reporter=html --reporter=lcov --reporter=json-summary --reporter=text-summary _mocha -- -t 100s --require coffee-script/register test/**/*.{js,coffee}",
+    "test": "mocha -t 100s test/**/*.js && eslint {*,**/*}.js",
+    "coverage": "nyc --reporter=html --reporter=lcov --reporter=json-summary --reporter=text-summary _mocha -- -t 100s test/**/*.js",
     "postversion": "git push -u origin $(git rev-parse --abbrev-ref HEAD) --follow-tags && npm publish && echo '…released.'",
     "preversion": "echo 'Releasing…' && npm ci",
     "release:major": "npm version major -m 'build: release major version %s'",
@@ -30,8 +30,9 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "coffee-script": "1.9.x",
-    "jshint": "^2.11.0",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^7.17.0",
+    "eslint-config-adslot": "^1.0.1",
     "mocha": "^7.1.1",
     "nyc": "^15.0.0"
   },
@@ -41,6 +42,9 @@
   },
   "homepage": "https://github.com/Adslot/cartography",
   "dependencies": {},
+  "eslintConfig": {
+    "extends": "adslot"
+  },
   "prettier": {
     "singleQuote": true,
     "trailingComma": "es5",
