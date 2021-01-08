@@ -202,19 +202,19 @@
 
   function mapArray(source, schema, arrayFilters = []) {
     const arraySchema = Array.isArray(schema) ? schema : filters.object(schema);
-    const results = map({ array: source }, { array: same(arrayFilters, filters.array(arraySchema)) });
-    return results.array;
+    const { array } = map({ array: source }, { array: same(arrayFilters, filters.array(arraySchema)) }) || {};
+    return array;
   }
 
   const exports = {
-    CartographyError: CartographyError,
-    FilterChainBreak: FilterChainBreak,
-    isCartographyError: isCartographyError,
-    map: map,
-    mapArray: mapArray,
-    same: same,
-    from: from,
-    filters: filters,
+    CartographyError,
+    FilterChainBreak,
+    isCartographyError,
+    map,
+    mapArray,
+    same,
+    from,
+    filters,
   };
   if (typeof module !== 'undefined') module.exports = exports;
   return exports;

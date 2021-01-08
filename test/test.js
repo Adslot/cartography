@@ -99,6 +99,9 @@ describe('cartography', function () {
 
     it('should translate an array of objects', () =>
       assert.deepStrictEqual(mapArray([anInput()], testSchema), [theExpectedOutput()]));
+
+    it('should be able to handle undefined result', () =>
+      assert.strictEqual(mapArray([], testSchema, [() => undefined, filters.optional]), undefined));
   });
 
   describe('error reporting', function () {
