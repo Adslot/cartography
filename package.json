@@ -1,6 +1,6 @@
 {
   "name": "cartography",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Object to Object mapper",
   "main": "index.js",
   "scripts": {
