@@ -2,7 +2,7 @@ Cartography
 ===========
 
 [![NPM version][npm-image]][npm-url]
-![Build Status](https://github.com/Adslot/cartography/workflows/Node.js%20CI/badge.svg)
+![Build Status](https://github.com/Adslot/cartography/actions/workflows/node.js.yml/badge.svg)
 
 Javascript Object to Object mapper
 
