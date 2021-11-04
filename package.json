@@ -31,8 +31,8 @@
   "license": "MIT",
   "devDependencies": {
     "babel-eslint": "^10.1.0",
-    "eslint": "^6.8.0",
-    "eslint-config-adslot": "^1.0.3",
+    "eslint": "^7.32.0",
+    "eslint-config-adslot": "^1.2.0",
     "mocha": "^9.1.2",
     "nyc": "^15.1.0"
   },
@@ -41,7 +41,6 @@
     "url": "https://github.com/Adslot/cartography/issues"
   },
   "homepage": "https://github.com/Adslot/cartography",
-  "dependencies": {},
   "eslintConfig": {
     "extends": "adslot"
   },
@@ -50,5 +49,8 @@
     "trailingComma": "es5",
     "arrowParens": "always",
     "printWidth": 120
+  },
+  "engines": {
+    "node": "^16"
   }
 }
