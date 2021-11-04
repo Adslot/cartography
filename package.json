@@ -50,5 +50,8 @@
     "trailingComma": "es5",
     "arrowParens": "always",
     "printWidth": 120
+  },
+  "engines": {
+    "node": "^16"
   }
 }
