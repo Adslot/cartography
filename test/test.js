@@ -230,6 +230,85 @@ describe('cartography', function () {
         { input: '1', error: /number/, verb: 'reject a string that looks like a number' },
       ],
 
+      isEmail: [
+        { input: 'name@test.com', output: 'name@test.com', verb: 'pass an email' },
+        { input: 'name.extra@test.com', output: 'name.extra@test.com', verb: 'pass an email with period' },
+        { input: 'name+extra@test.com', output: 'name+extra@test.com', verb: 'pass an email with +' },
+        { input: 'name@sub.test.com', output: 'name@sub.test.com', verb: 'pass an email with subdomain' },
+        { input: 'name@sub.test.qwe', output: 'name@sub.test.qwe', verb: 'pass an email any domain' },
+        { input: 'name@[203.203.203.203]', output: 'name@[203.203.203.203]', verb: 'pass an email with ip address' },
+        { input: null, error: /must be a valid email address/, verb: 'reject null' },
+        { input: undefined, error: /must be a valid email address/, verb: 'reject undefined' },
+        { input: '', error: /must be a valid email address/, verb: 'reject empty string' },
+        { input: 'just_a_string', error: /must be a valid email address/, verb: 'reject just a string' },
+        {
+          input: 'name@[203.203.203.2031]',
+          error: /must be a valid email address/,
+          verb: 'reject an email with invalid ip address',
+        },
+        {
+          input: 'name@203.203.203.203',
+          error: /must be a valid email address/,
+          verb: 'reject an email with ip address without brackets',
+        },
+        {
+          input: 'name@test',
+          error: /must be a valid email address/,
+          verb: 'reject an email with no domain extension',
+        },
+        {
+          input: 'name@test++.com',
+          error: /must be a valid email address/,
+          verb: 'reject an email with invalid domain',
+        },
+      ],
+
+      isUrl: [
+        { input: 'http://test.com', output: 'http://test.com', verb: 'pass a http url' },
+        { input: 'https://test.com', output: 'https://test.com', verb: 'pass a https url' },
+        { input: 'https://www.test.com', output: 'https://www.test.com', verb: 'pass a https url with www' },
+        { input: 'https://sub.test.com', output: 'https://sub.test.com', verb: 'pass an url with subdomain' },
+        { input: 'https://test.com/', output: 'https://test.com/', verb: 'pass an url with trailing slash' },
+        {
+          input: 'https://www.test.com.au',
+          output: 'https://www.test.com.au',
+          verb: 'pass an url with double extenstion',
+        },
+        { input: 'https://test.com:3000', output: 'https://test.com:3000', verb: 'pass an url with port' },
+        { input: 'https://203.203.203.203', output: 'https://203.203.203.203', verb: 'pass an url ip address' },
+        { input: 'https://test.com/#id', output: 'https://test.com/#id', verb: 'pass an url with anchor' },
+        { input: 'https://test.com/#!id', output: 'https://test.com/#!id', verb: 'pass an url with hashbang' },
+        {
+          input: 'https://test.com/path/subpath',
+          output: 'https://test.com/path/subpath',
+          verb: 'pass an url with path',
+        },
+        {
+          input: 'https://test.com/path/subpath?query=string',
+          output: 'https://test.com/path/subpath?query=string',
+          verb: 'pass an url with path and query string',
+        },
+        {
+          input: 'https://test.com/path/subpath?query=string#id',
+          output: 'https://test.com/path/subpath?query=string#id',
+          verb: 'pass an url with path, query string and anchor',
+        },
+        {
+          input: 'https://test.com/path/subpath?query=some%20string',
+          output: 'https://test.com/path/subpath?query=some%20string',
+          verb: 'pass an url with query string (encoded)',
+        },
+        { input: null, error: /must be a valid URL/, verb: 'reject null' },
+        { input: undefined, error: /must be a valid URL/, verb: 'reject undefined' },
+        { input: '', error: /must be a valid URL/, verb: 'reject empty string' },
+        { input: 'just_a_string', error: /must be a valid URL/, verb: 'reject just a string' },
+        {
+          input: 'https://test.com/path/subpath?query=some string',
+          error: /must be a valid URL/,
+          verb: 'reject an url with query string (not encoded)',
+        },
+      ],
+
       isArrayOfInts: [
         { input: {}, error: /Array/, verb: 'reject Objects' },
         { input() {}, error: /Array/, verb: 'reject functions' },
