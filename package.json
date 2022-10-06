@@ -30,8 +30,8 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "eslint": "^8.18.0",
-    "eslint-config-adslot": "^1.2.2",
+    "eslint": "^8.24.0",
+    "eslint-config-adslot": "^1.4.0",
     "mocha": "^10.0.0",
     "nyc": "^15.1.0"
   },
