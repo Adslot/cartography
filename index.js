@@ -82,13 +82,12 @@
     for (const destinationAttribute in schema) {
       let value = schema[destinationAttribute];
 
+      const methodValue = typeof value === 'string' ? rejectString : goRecursive;
+      const funcValue = typeof value === 'function' ? callCustomFunction : methodValue
+
       const method = Array.isArray(value)
         ? runFilters
-        : typeof value === 'function'
-        ? callCustomFunction
-        : typeof value === 'string'
-        ? rejectString
-        : goRecursive;
+        : funcValue
 
       value = method(value, destinationAttribute);
       if (value != null) {
