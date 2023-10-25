@@ -31,7 +31,7 @@
   "license": "MIT",
   "devDependencies": {
     "eslint": "^8.50.0",
-    "eslint-config-adslot": "^1.7.0",
+    "eslint-config-adslot": "^1.8.0",
     "mocha": "^10.2.0",
     "nyc": "^15.1.0"
   },
@@ -50,6 +50,6 @@
     "printWidth": 120
   },
   "engines": {
-    "node": "^18"
+    "node": "^20"
   }
 }
