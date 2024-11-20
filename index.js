@@ -73,6 +73,7 @@
     }
 
     // Error: a string was used. Throw an exception
+    // eslint-disable-next-line no-unused-vars
     function rejectString(s, destinationAttribute) {
       throw new Error('invalid schema for `' + destinationAttribute + '`');
     }

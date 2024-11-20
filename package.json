@@ -4,6 +4,7 @@
   "description": "Object to Object mapper",
   "main": "index.js",
   "scripts": {
+    "lint": "eslint {*,**/*}.js",
     "test": "mocha -t 100s test/**/*.js && eslint {*,**/*}.js",
     "coverage": "nyc --reporter=html --reporter=lcov --reporter=json-summary --reporter=text-summary _mocha -- -t 100s test/**/*.js",
     "postversion": "git push -u origin $(git rev-parse --abbrev-ref HEAD) --follow-tags && npm publish && echo '…released.'",
@@ -50,6 +51,6 @@
     "printWidth": 120
   },
   "engines": {
-    "node": "^20"
+    "node": "^22"
   }
 }
