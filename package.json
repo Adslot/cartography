@@ -4,8 +4,11 @@
   "description": "Object to Object mapper",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint {*,**/*}.js",
-    "test": "mocha -t 100s test/**/*.js && eslint {*,**/*}.js",
+    "format": "prettier ''**/*.js' --write",
+    "lint:eslint": "eslint '**/*.js'",
+    "lint:prettier": "prettier '**/*.js' --check",
+    "lint": "npm run lint:eslint && npm run lint:prettier",
+    "test": "mocha -t 100s test/**/*.js",
     "coverage": "nyc --reporter=html --reporter=lcov --reporter=json-summary --reporter=text-summary _mocha -- -t 100s test/**/*.js",
     "postversion": "git push -u origin $(git rev-parse --abbrev-ref HEAD) --follow-tags && npm publish && echo '…released.'",
     "preversion": "echo 'Releasing…' && npm ci",
@@ -31,19 +34,18 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "eslint": "^8.57.1",
-    "eslint-config-adslot": "^1.9.0",
+    "eslint": "^9.19.0",
+    "eslint-config-adslot": "^2.0.2",
+    "globals": "^15.14.0",
     "mocha": "^11.0.1",
-    "nyc": "^17.1.0"
+    "nyc": "^17.1.0",
+    "prettier": "^3.4.2"
   },
   "readmeFilename": "README.md",
   "bugs": {
     "url": "https://github.com/Adslot/cartography/issues"
   },
   "homepage": "https://github.com/Adslot/cartography",
-  "eslintConfig": {
-    "extends": "adslot"
-  },
   "prettier": {
     "singleQuote": true,
     "trailingComma": "es5",
