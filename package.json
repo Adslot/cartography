@@ -9,7 +9,7 @@
     "lint:prettier": "prettier '**/*.js' --check",
     "lint": "npm run lint:eslint && npm run lint:prettier",
     "test": "mocha -t 100s test/**/*.js",
-    "coverage": "nyc --reporter=html --reporter=lcov --reporter=json-summary --reporter=text-summary _mocha -- -t 100s test/**/*.js",
+    "coverage": "nyc --reporter=html --reporter=lcov --reporter=json-summary --reporter=text-summary _mocha -- test/**/*.js",
     "postversion": "git push -u origin $(git rev-parse --abbrev-ref HEAD) --follow-tags && npm publish && echo '…released.'",
     "preversion": "echo 'Releasing…' && npm ci",
     "release:major": "npm version major -m 'build: release major version %s'",
@@ -37,9 +37,9 @@
     "eslint": "^9.23.0",
     "eslint-config-adslot": "^2.0.2",
     "globals": "^16.0.0",
-    "mocha": "^11.0.1",
+    "mocha": "^11.1.0",
     "nyc": "^17.1.0",
-    "prettier": "^3.4.2"
+    "prettier": "^3.5.3"
   },
   "readmeFilename": "README.md",
   "bugs": {
