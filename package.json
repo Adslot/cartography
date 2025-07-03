@@ -37,9 +37,9 @@
     "eslint": "^9.23.0",
     "eslint-config-adslot": "^2.0.2",
     "globals": "^16.0.0",
-    "mocha": "^11.1.0",
+    "mocha": "^11.7.1",
     "nyc": "^17.1.0",
-    "prettier": "^3.5.3"
+    "prettier": "^3.6.2"
   },
   "readmeFilename": "README.md",
   "bugs": {
