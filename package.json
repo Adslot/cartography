@@ -34,7 +34,7 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "eslint": "^9.37.0",
+    "eslint": "^9.39.1",
     "eslint-config-adslot": "^2.2.0",
     "mocha": "^11.7.4",
     "nyc": "^17.1.0",
