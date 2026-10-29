@@ -52,6 +52,6 @@
     "printWidth": 120
   },
   "engines": {
-    "node": "^24"
+    "node": "^26"
   }
 }
